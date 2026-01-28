@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}Dashboard - LUSU{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card sidebar">
+                <div class="card-body">
+                    <h5><i class="bi bi-calendar-event"></i> Quick Actions</h5>
+                    <div class="d-grid gap-2 mb-4">
+                        <a href="{% url 'eventpollapp:create_event' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Create Event
+                        </a>
+                        <a href="{% url 'eventpollapp:event_list' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-list"></i> View All Events
+                        </a>
+                    </div>
+
+                    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist">
+                        <button class="nav-link active" id="v-pills-planning-tab" data-bs-toggle="pill" 
+                                data-bs-target="#v-pills-planning" type="button">
+                            <i class="bi bi-calendar-check"></i> Event Planning
+                        </button>
+                        <button class="nav-link" id="v-pills-bills-tab" data-bs-toggle="pill" 
+                                data-bs-target="#v-pills-bills" type="button">
+                            <i class="bi bi-receipt"></i> Bill Splitting
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="tab-content" id="v-pills-tabContent">
+                <!-- Event Planning Tab -->
+                <div class="tab-pane fade show active" id="v-pills-planning">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-calendar"></i> {{ month_name }} {{ current_year }}</h2>
+                        <div class="btn-group" role="group">
+                            <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn btn-outline-primary">
+                                <i class="bi bi-chevron-left"></i> Previous
+                            </a>
+                            <a href="?month={{ next_month }}&year={{ next_year }}" class="btn btn-outline-primary">
+                                Next <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Calendar -->
+                    <div class="card">
+                        <div class="card-body">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for week in calendar_days %}
+                                    <tr>
+                                        {% for day, weekday in week %}
+                                        <td class="calendar-day" style="height: 100px; vertical-align: top; position: relative;">
+                                            {% if day %}
+                                                <strong>{{ day }}</strong>
+                                                {% if day in events_by_day %}
+                                                    {% for event in events_by_day|get_item:day %}
+                                                    <div class="small bg-primary text-white rounded p-1 mb-1">
+                                                        <a href="{% url 'eventpollapp:event_detail' event.id %}" class="text-white text-decoration-none">
+                                                            {{ event.title|truncatechars:15 }}
+                                                        </a>
+                                                    </div>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Recent Events -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5><i class="bi bi-clock-history"></i> Recent Events</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_events %}
+                                {% for event in recent_events %}
+                                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                    <div>
+                                        <h6 class="mb-0">
+                                            <a href="{% url 'eventpollapp:event_detail' event.id %}" class="text-decoration-none">
+                                                {{ event.title }}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted">
+                                            {% if event.is_date_finalized %}
+                                                <i class="bi bi-check-circle text-success"></i> 
+                                                {{ event.finalized_date|date:"M d, Y" }}
+                                            {% else %}
+                                                <i class="bi bi-clock text-warning"></i> Date pending
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <span class="badge bg-secondary">
+                                        {{ event.participants.count }} participants
+                                    </span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center text-muted">
+                                    <i class="bi bi-calendar-x" style="font-size: 2rem;"></i>
+                                    <p>No recent events</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bill Splitting Tab -->
+                <div class="tab-pane fade" id="v-pills-bills">
+                    <h2><i class="bi bi-receipt"></i> Bill Splitting</h2>
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="text-muted">
+                                <i class="bi bi-info-circle"></i> 
+                                Events with finalized dates will appear here for bill splitting.
+                            </p>
+                            <a href="{% url 'bills:bill_list' %}" class="btn btn-primary">
+                                <i class="bi bi-receipt"></i> Manage Bills
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.calendar-day {
+    height: 100px;
+    vertical-align: top;
+    position: relative;
+}
+.calendar-day .small {
+    font-size: 0.75rem;
+}
+</style>
+{% endblock %}

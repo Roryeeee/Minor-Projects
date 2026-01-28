@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Friends - LUSU{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="bi bi-people"></i> My Friends</h2>
+            
+            <!-- Pending Friend Requests -->
+            {% if pending_requests %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="bi bi-clock"></i> Pending Friend Requests</h5>
+                </div>
+                <div class="card-body">
+                    {% for request in pending_requests %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                        <div class="d-flex align-items-center">
+                            {% if request.from_user.profile.profile_picture %}
+                                <img src="{{ request.from_user.profile.profile_picture.url }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-person text-white"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ request.from_user.profile.full_name }}</strong>
+                                <br><small class="text-muted">@{{ request.from_user.username }}</small>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="{% url 'accounts:respond_friend_request' request.id 'accept' %}" class="btn btn-success btn-sm me-1">
+                                <i class="bi bi-check"></i> Accept
+                            </a>
+                            <a href="{% url 'accounts:respond_friend_request' request.id 'reject' %}" class="btn btn-danger btn-sm">
+                                <i class="bi bi-x"></i> Reject
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Friends List -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-people-fill"></i> My Friends ({{ friends.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if friends %}
+                        <div class="row">
+                            {% for friend in friends %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card friend-card h-100">
+                                    <div class="card-body text-center">
+                                        {% if friend.profile.profile_picture %}
+                                            <img src="{{ friend.profile.profile_picture.url }}" class="rounded-circle mb-2" style="width: 60px; height: 60px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                                                <i class="bi bi-person text-white" style="font-size: 1.5rem;"></i>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <h6>{{ friend.profile.full_name }}</h6>
+                                        <p class="text-muted small">@{{ friend.username }}</p>
+                                        
+                                        <div class="d-flex gap-1 justify-content-center flex-wrap">
+                                            <a href="{% url 'accounts:profile' friend.id %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                            {% if roles %}
+                                            <form class="d-inline-flex ms-1" method="get" onsubmit="event.preventDefault(); var select=this.querySelector('select'); if(select.value){window.location.href='{% url 'accounts:assign_role' friend.id 0 %}'.replace('0', select.value);}">
+                                                <select name="role_id" class="form-select form-select-sm me-1" required>
+                                                    <option value="">Assign Role...</option>
+                                                    {% for role in roles %}
+                                                        <option value="{{ role.id }}">{{ role.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <button type="submit" class="btn btn-outline-success btn-sm">Assign</button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Show assigned roles -->
+                                        {% if friend.userrole_set.all %}
+                                        <div class="mt-2">
+                                            <small class="text-muted">Roles:</small><br>
+                                            {% for user_role in friend.userrole_set.all %}
+                                                <span class="badge bg-info text-dark me-1">{{ user_role.role.name }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="bi bi-people" style="font-size: 3rem;"></i>
+                            <p>No friends yet. <a href="{% url 'accounts:search_users' %}">Find some friends!</a></p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

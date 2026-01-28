@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Logged Out - LUSU{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="card-title mb-4">
+                    <i class="bi bi-box-arrow-right text-danger"></i> Logged Out
+                </h3>
+                <p>You have been successfully logged out.</p>
+                <a href="{% url 'accounts:login' %}" class="btn btn-primary">
+                    <i class="bi bi-box-arrow-in-right"></i> Login Again
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

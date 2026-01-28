@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Bills - LUSU{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-receipt"></i> Bills & Expenses</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'bills:user_summary' %}" class="btn btn-outline-primary">
+                <i class="bi bi-graph-up"></i> My Summary
+            </a>
+            <a href="{% url 'bills:create_bill' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create Bill
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Event</label>
+                    {{ filter_form.event }}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Status</label>
+                    {{ filter_form.settlement_status }}
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-primary me-2">
+                        <i class="bi bi-funnel"></i> Filter
+                    </button>
+                    <a href="{% url 'bills:bill_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if bills %}
+        <div class="row">
+            {% for bill in bills %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'bills:bill_detail' bill.id %}" class="text-decoration-none">
+                                {{ bill.title }}
+                            </a>
+                        </h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ bill.event.title }}</h6>
+                        <p class="card-text">{{ bill.description|truncatechars:80 }}</p>
+                        
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Total Amount:</span>
+                                <strong>${{ bill.total_amount|floatformat:2 }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Your Balance:</span>
+                                <span class="{% if bill.user_balance > 0 %}text-success{% elif bill.user_balance < 0 %}text-danger{% else %}text-muted{% endif %}">
+                                    {% if bill.user_balance > 0 %}+{% endif %} ${{ bill.user_balance|floatformat:2 }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            {% if bill.is_settled %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Settled
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-clock"></i> Unsettled
+                                </span>
+                            {% endif %}
+                            <span class="badge bg-secondary">
+                                {{ bill.expense_count }} expenses
+                            </span>
+                        </div>
+                        
+                        <small class="text-muted">
+                            Created by {{ bill.created_by.username }} on {{ bill.created_at|date:"M d, Y" }}
+                        </small>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'bills:bill_detail' bill.id %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center mt-5">
+            <i class="bi bi-receipt text-muted" style="font-size: 4rem;"></i>
+            <h4 class="text-muted">No Bills Found</h4>
+            <p class="text-muted">Create your first bill for an event or check your filters.</p>
+            <a href="{% url 'bills:create_bill' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create Bill
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

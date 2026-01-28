@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h3><i class="bi bi-shuffle"></i> Tie Detected!</h3>
+    <p>We need to break the tie. Spin the wheel to pick the final event date.</p>
+
+    <canvas id="wheelCanvas" width="400" height="400"></canvas>
+    <button id="spinBtn" class="btn btn-primary mt-3">Spin the Wheel 🎡</button>
+</div>
+
+<form id="finalizeForm" method="post" action="{% url 'eventpollapp:finalize_event_date' event.id %}">
+    {% csrf_token %}
+    <input type="hidden" name="selected_date" id="selectedDate">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const options = [
+    {% for option in tied_options %}
+        { id: {{ option.id }}, label: "{{ option.proposed_date|date:'F d, Y g:i A' }}" },
+    {% endfor %}
+];
+
+const canvas = document.getElementById("wheelCanvas");
+const ctx = canvas.getContext("2d");
+const radius = canvas.width / 2;
+const spinBtn = document.getElementById("spinBtn");
+let currentAngle = 0;
+
+// Draw wheel
+function drawWheel() {
+    const sliceAngle = (2 * Math.PI) / options.length;
+    options.forEach((opt, i) => {
+        ctx.beginPath();
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius, i * sliceAngle, (i + 1) * sliceAngle);
+        ctx.fillStyle = i % 2 === 0 ? "#4CAF50" : "#2196F3";
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(radius, radius);
+        ctx.rotate(i * sliceAngle + sliceAngle / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#fff";
+        ctx.font = "16px Arial";
+        ctx.fillText(opt.label, radius - 10, 5);
+        ctx.restore();
+    });
+}
+
+// Spin wheel
+function spinWheel() {
+    const spinAngle = Math.random() * 2 * Math.PI + (5 * 2 * Math.PI); // multiple spins
+    const duration = 3000; 
+    const start = Date.now();
+
+    function animate() {
+        const elapsed = Date.now() - start;
+        if (elapsed < duration) {
+            currentAngle = spinAngle * (elapsed / duration);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(radius, radius);
+            ctx.rotate(currentAngle);
+            ctx.translate(-radius, -radius);
+            drawWheel();
+            ctx.restore();
+            requestAnimationFrame(animate);
+        } else {
+            finalizeResult();
+        }
+    }
+    animate();
+}
+
+// Pick winning option
+function finalizeResult() {
+    const sliceAngle = (2 * Math.PI) / options.length;
+    const winningIndex = Math.floor(((2 * Math.PI) - (currentAngle % (2 * Math.PI))) / sliceAngle) % options.length;
+    const winner = options[winningIndex];
+    alert("Winner: " + winner.label);
+    document.getElementById("selectedDate").value = winner.id;
+    document.getElementById("finalizeForm").submit();
+}
+
+spinBtn.addEventListener("click", spinWheel);
+
+drawWheel();
+</script>
+{% endblock %}

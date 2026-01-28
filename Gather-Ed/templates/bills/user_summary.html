@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}Financial Summary - LUSU{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-graph-up"></i> My Financial Summary</h2>
+        <a href="{% url 'bills:bill_list' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to Bills
+        </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ summary_data.total_bills }}</h4>
+                            <p class="mb-0">Total Bills</p>
+                        </div>
+                        <i class="bi bi-receipt" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ summary_data.settled_bills }}</h4>
+                            <p class="mb-0">Settled Bills</p>
+                        </div>
+                        <i class="bi bi-check-circle" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ summary_data.unsettled_bills }}</h4>
+                            <p class="mb-0">Unsettled Bills</p>
+                        </div>
+                        <i class="bi bi-clock" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card {% if summary_data.total_user_owes > summary_data.total_owed_to_user %}bg-danger{% else %}bg-info{% endif %} text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {% if summary_data.total_user_owes > summary_data.total_owed_to_user %}
+                                <h4>-${{ summary_data.total_user_owes|floatformat:2 }}</h4>
+                                <p class="mb-0">Net Balance</p>
+                            {% elif summary_data.total_owed_to_user > summary_data.total_user_owes %}
+                                <h4>+${{ summary_data.total_owed_to_user|floatformat:2 }}</h4>
+                                <p class="mb-0">Net Balance</p>
+                            {% else %}
+                                <h4>$0.00</h4>
+                                <p class="mb-0">All Even!</p>
+                            {% endif %}
+                        </div>
+                        <i class="bi bi-calculator" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Balance Breakdown -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="bi bi-arrow-down-left"></i> Money Owed to You</h5>
+                </div>
+                <div class="card-body">
+                    {% if summary_data.total_owed_to_user > 0 %}
+                        <h4 class="text-success">${{ summary_data.total_owed_to_user|floatformat:2 }}</h4>
+                        <p class="text-muted">People owe you money from the following bills:</p>
+                        
+                        {% for bill_info in summary_data.bills_breakdown %}
+                            {% if bill_info.balance > 0 %}
+                            <div class="d-flex justify-content-between align-items-center p-2 mb-1 border rounded">
+                                <div>
+                                    <strong>{{ bill_info.bill.title }}</strong>
+                                    <div class="small text-muted">{{ bill_info.bill.event.title }}</div>
+                                </div>
+                                <span class="text-success">+${{ bill_info.balance|floatformat:2 }}</span>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="bi bi-check-circle" style="font-size: 3rem;"></i>
+                            <p>No one owes you money!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5><i class="bi bi-arrow-up-right"></i> Money You Owe</h5>
+                </div>
+                <div class="card-body">
+                    {% if summary_data.total_user_owes > 0 %}
+                        <h4 class="text-danger">${{ summary_data.total_user_owes|floatformat:2 }}</h4>
+                        <p class="text-muted">You owe money for the following bills:</p>
+                        
+                        {% for bill_info in summary_data.bills_breakdown %}
+                            {% if bill_info.balance < 0 %}
+                            <div class="d-flex justify-content-between align-items-center p-2 mb-1 border rounded">
+                                <div>
+                                    <strong>{{ bill_info.bill.title }}</strong>
+                                    <div class="small text-muted">{{ bill_info.bill.event.title }}</div>
+                                </div>
+                                <span class="text-danger">${{ bill_info.balance|floatformat:2|cut:"-" }}</span>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="bi bi-check-circle" style="font-size: 3rem;"></i>
+                            <p>You don't owe anyone money!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Bills -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="bi bi-list"></i> All Your Bills</h5>
+        </div>
+        <div class="card-body">
+            {% if summary_data.bills_breakdown %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Bill</th>
+                                <th>Event</th>
+                                <th>Total Amount</th>
+                                <th>Your Balance</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bill_info in summary_data.bills_breakdown %}
+                            <tr>
+                                <td>{{ bill_info.bill.title }}</td>
+                                <td>{{ bill_info.bill.event.title }}</td>
+                                <td>${{ bill_info.total_amount|floatformat:2 }}</td>
+                                <td class="{% if bill_info.balance > 0 %}text-success{% elif bill_info.balance < 0 %}text-danger{% else %}text-muted{% endif %}">
+                                    {% if bill_info.balance > 0 %}+{% endif %}${{ bill_info.balance|floatformat:2 }}
+                                </td>
+                                <td>
+                                    {% if bill_info.bill.is_settled %}
+                                        <span class="badge bg-success">Settled</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Unsettled</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'bills:bill_detail' bill_info.bill.id %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center text-muted">
+                    <i class="bi bi-receipt" style="font-size: 3rem;"></i>
+                    <p>No bills found.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

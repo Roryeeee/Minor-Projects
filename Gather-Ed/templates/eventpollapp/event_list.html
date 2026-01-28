@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Events - LUSU{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-calendar-event"></i> Events</h2>
+        <a href="{% url 'eventpollapp:create_event' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Create Event
+        </a>
+    </div>
+
+    {% if events %}
+        <div class="row">
+            {% for event in events %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'eventpollapp:event_detail' event.id %}" class="text-decoration-none">
+                                {{ event.title }}
+                            </a>
+                        </h5>
+                        <p class="card-text">{{ event.description|truncatechars:100 }}</p>
+                        
+                        <div class="mb-2">
+                            {% if event.is_date_finalized %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> {{ event.finalized_date|date:"M d, Y H:i" }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-clock"></i> Date Pending
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-2">
+                            {% if event.required_role %}
+                                <span class="badge bg-info">
+                                    <i class="bi bi-tag"></i> {{ event.required_role.name }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-globe"></i> Open to All
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                by {{ event.creator.username }}
+                            </small>
+                            <span class="badge bg-primary">
+                                {{ event.participants.count }} participants
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'eventpollapp:event_detail' event.id %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center mt-5">
+            <i class="bi bi-calendar-x text-muted" style="font-size: 4rem;"></i>
+            <h4 class="text-muted">No Events Found</h4>
+            <p class="text-muted">Create your first event or check if you have the required roles for existing events.</p>
+            <a href="{% url 'eventpollapp:create_event' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create Event
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

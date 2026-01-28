@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Find Friends - LUSU{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-search"></i> Find Friends</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="mb-4">
+                        <div class="input-group">
+                            <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by username, first name, or last name...">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                    
+                    {% if query %}
+                        <h6>Search Results for "{{ query }}":</h6>
+                        {% if users %}
+                            <div class="row">
+                                {% for user in users %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center">
+                                                {% if user.profile.profile_picture %}
+                                                    <img src="{{ user.profile.profile_picture.url }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                                        <i class="bi bi-person text-white"></i>
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-0">{{ user.profile.full_name }}</h6>
+                                                    <small class="text-muted">@{{ user.username }}</small>
+                                                </div>
+                                                
+                                                <a href="{% url 'accounts:profile' user.id %}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-eye"></i> View
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted">
+                                <i class="bi bi-search" style="font-size: 3rem;"></i>
+                                <p>No users found matching "{{ query }}"</p>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="bi bi-search" style="font-size: 3rem;"></i>
+                            <p>Enter a search term to find friends</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
